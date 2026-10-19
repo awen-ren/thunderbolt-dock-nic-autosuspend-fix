@@ -1,0 +1,12 @@
+# Keep Apple/Alpine Ridge Thunderbolt controllers in D0 so USB3-attached dock NICs enumerate reliably.
+#
+# Root cause: the Thunderbolt USB (xHCI) controller (8086:15d4) runtime-autosuspends; while suspended it
+# cannot host a dock's USB3 tunnel, so the dock's gigabit NIC (and anything else on the SuperSpeed side)
+# never appears -- even though the dock's USB2 devices enumerate normally via the PCH. Pinning
+# power/control=on resumes the controller to D0 and keeps it there. No reboot, no acpi_osi=Darwin.
+#
+# Matches by PCI vendor/device ID so it is portable across machines with the same controller.
+# NHI = 8086:15d2, TB USB xHCI = 8086:15d4 (Intel Alpine Ridge / JHL6540, Thunderbolt 3).
+
+ACTION=="add", SUBSYSTEM=="pci", ATTR{vendor}=="0x8086", ATTR{device}=="0x15d4", ATTR{power/control}="on"
+ACTION=="add", SUBSYSTEM=="pci", ATTR{vendor}=="0x8086", ATTR{device}=="0x15d2", ATTR{power/control}="on"
